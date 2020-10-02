@@ -2,10 +2,10 @@ For learning free SAP Technology
 -----------------------------------------------
 (just create your account(sign up) abd your good to go)
 
-https://open.sap.com/
+https://open.sap.com/ -----------------------> for learning
 -----------------------------
 
-https://developers.sap.com/
+https://developers.sap.com/ -----------------------> for learning
 ------------------------------
 -------------------------------------------------
 
@@ -22,10 +22,10 @@ https://openui5.hana.ondemand.com/api
 
 Tutorial
 ---------------------------------------------------
-https://sapyard.com/
+https://sapyard.com/ --------------------------------> for more/in-depth knowledge in SAP technologies
 
 
 
-OData Service - for testing your application with dummy data
+OData Service - for testing your application with dummy data(LIVE)
 -----------------------------------------------------
 https://services.odata.org/
