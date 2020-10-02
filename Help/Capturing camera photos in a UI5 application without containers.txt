@@ -1,0 +1,65 @@
+Capturing camera photos in a UI5 application without containers
+
+No need to wrap the application in any container. All your users need is a modern browser.
+
+As a developer, you need one npm module to be installed and adding a UI5 control to some view. Couldn’t be simpler…
+
+What makes this possible is the HTML5 media API. This is an API browsers provide so that web apps can access media devices (e.g. camera, microphones). Here’s a good post about it.
+
+The API is not particularly hard to use but it is lower level than what we’d like for a UI5 app. So I’ve decided to take it a step further and wrap it in a nice, easy to use UI5 Camera control.
+
+The control, once inserted in a UI5 view, renders a live preview of the camera and upon user click captures the image from the camera and triggers an event called snapshot . By listening to this event on your controller you can grab the picture.
+
+The control deals with the boilerplate needed to ask the browser (and user) for Camera access and rendering a live preview of the video stream.
+
+Here’s a live demo of it. Try it with an up-to-date Chrome version and allow the camera when the browser asks. Don’t worry, the pictures never leave your browser.
+
+ 
+
+Sounds good enough? Read below to know how you can add this to your application.
+
+ 
+
+Step 1:
+At the root of your UI5 application, check if you have a file called package.json. If you do go to Step 2, if not do an npm init and follow the prompt. npm init creates the package.json which allows you to install modules locally.
+
+Step 2:
+Execute npm install openui5-camera This installs the library mentioned above which I’ve open sourced and published to the node package manager. The installed files are saved under folder node_modules.
+
+Step 3:
+Copy file node_modules\openui5-camera\dist\openui5\camera\library-preload.js into thirdparty\openui5\camera\library-preload.js (create folders as necessary).
+
+(bonus points if you can automate this step)
+
+Step 4:
+In your manifest, declare a resource path by adding the following inside sap.ui5:
+
+ "resourceRoots": {
+"openui5.camera": "./thirdparty/openui5/camera/"
+ }
+ 
+Step 5:
+In the view you wish to render the camera preview, insert the following:
+
+<cam:Camera
+    id="idCamera"
+    width="800"
+    height="600"
+    snapshot=".onSnapshot" />
+at the top of that view, declare the xml namespace cam pointing to the openui5.camera custom control:
+
+xmlns:cam="openui5.camera"
+
+Step 6:
+Implement the snapshot event handler in the corresponding controller. Example below:
+
+ onSnapshot: function (oEvent) {
+    // The image is inside oEvent, on the image parameter,
+    // let's grab it.
+    var sSnapshot = oEvent.getParameter("image")});
+    // Do something with it!
+    // As you see in the demo, you can attach it directly to a src of an Image. 
+    // Because it is already a text string it is also easy to POST to a server inside a json message. 
+},
+
+The picture is inside the event in png format encoded in base64, so it is essentially a string allowing you to POST it easily.
