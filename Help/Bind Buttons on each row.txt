@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html><head>
+	<meta http-equiv='X-UA-Compatible' content='IE=edge' />
+	<meta http-equiv='Content-Type' content='text/html;charset=UTF-8'/>
+	
+	<title>Table Edit Delete</title>
+	
+    <script id='sap-ui-bootstrap' type='text/javascript' 
+        src='https://sapui5.netweaver.ondemand.com/resources/sap-ui-core.js'
+          data-sap-ui-theme='sap_goldreflection'
+        data-sap-ui-libs='sap.ui.commons,sap.ui.ux3,sap.ui.table'>
+  
+    </script> 
+  <style>
+    .test{
+      color: red;
+      
+      
+    }
+  
+  </style>
+	
+	<script>
+var mdData = {
+	    		clients:[
+		    		        {firstName:"Camera1", lastName:"Duck", id: "1", checked : false},
+		    		        {firstName:"Camera2", lastName:"Luke", id: "2", checked : false},
+		    		        {firstName:"Camera3", lastName:"Mouse", id: "3", checked : false},
+		    		        {firstName:"Camera4", lastName:"Spider", id: "4", checked : true},
+		    		        {firstName:"Camera5", lastName:"Dredd", id: "5", checked : false},
+		    		        {firstName:"Camera6", lastName:"Comic", id: "6", checked : false},
+		    		        {firstName:"Camera7", lastName:"Gordon", id: "7" , checked : false},
+		    		     ]
+		    	
+		};
+		var oModel = new sap.ui.model.json.JSONModel();
+		oModel.setData(mdData);
+		sap.ui.getCore().setModel(oModel);
+
+		// clients table
+		var oTable = new sap.ui.table.Table({
+			title : "Clients",
+			width : "100%",
+			visibleRowCount : 5,
+                  selectionMode : sap.ui.table.SelectionMode.None,
+			editable : false
+		});
+
+		oTable.addColumn(new sap.ui.table.Column({
+			label: new sap.ui.commons.Label({text: ""}),
+			template: sap.ui.commons.layout.HorizontalLayout({
+                  content:[new sap.ui.commons.Label({text:"{id}"}).addStyleClass('test')]
+                  })
+		}));
+		oTable.addColumn(new sap.ui.table.Column({
+			label: new sap.ui.commons.Label({text: "First Name"}),
+                  template: new sap.ui.commons.TextField({value:"{firstName}",editable:'{checked}'})
+		}));
+		oTable.addColumn(new sap.ui.table.Column({
+			label: new sap.ui.commons.Label({text: "Last Name"}),
+          template: new sap.ui.commons.TextField({value:"{lastName}",editable:'{checked}'})
+		}));
+      
+      oTable.addColumn(new sap.ui.table.Column({
+			label: new sap.ui.commons.Label({text: "Edit"}),
+        template: new sap.ui.commons.Button({text:'Edit',press:function(){
+          var currentContext = this.getBindingContext();
+          var oModel = currentContext.getModel();
+          var oData = oModel.getData();
+          if(this.getText()==='Edit'){
+            this.setText('Save');
+            oModel.setProperty('checked',true,currentContext);
+            
+          }else{
+            this.setText('Edit');
+            oModel.setProperty('checked',false,currentContext);
+          }
+        
+        }})
+		}));
+                
+      oTable.addColumn(new sap.ui.table.Column({
+			label: new sap.ui.commons.Label({text: "Delete"}),
+        template: new sap.ui.commons.Button({text:'Delete',press:function(){
+          var currentContext = this.getBindingContext();
+          var oModel = currentContext.getModel();
+          var oData = oModel.getData();
+          var  currentRowIndex = parseInt(this.getBindingContext().getPath().split('/')[this.getBindingContext().getPath().split('/').length - 1]);
+          oData.clients.splice(currentRowIndex,1);
+        oModel.updateBindings();
+        }})
+		}));
+      
+      
+      
+		
+		oTable.bindRows("/clients");
+		oTable.placeAt("master");
+
+      
+      
+      
+      
+      
+ 	</script>
+	</head>
+	<body class='sapUiBody'>
+		<div id='master'></div>
+	</body>
+</html>
