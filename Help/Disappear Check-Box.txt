@@ -1,0 +1,51 @@
+Making, check-box disappear when clicking on a list-item from drop-down menu and vice-versa.
+ --------------------------------------------------------
+ index.html
+ --------------------------------------------------------
+<!DOCTYPE html>
+<html><head>
+<meta name="description" content="sapui5 [table]: selected with checkbox" />
+	<meta http-equiv='X-UA-Compatible' content='IE=edge' />
+	<meta http-equiv='Content-Type' content='text/html;charset=UTF-8'/>
+	<title>Check-Box Disappear</title>
+
+	<script id='sap-ui-bootstrap' type='text/javascript'
+		src='https://sapui5.netweaver.ondemand.com/resources/sap-ui-core.js'
+		data-sap-ui-theme='sap_bluecrystal'
+		data-sap-ui-libs='sap.ui.commons,sap.m'></script>
+		<!-- add 'sap.ui.table' and/or other libraries if required -->
+</head>
+<body class='sapUiBody'>
+	<div id='content'></div>
+</body>
+</html>
+
+-------------------------------------------------------
+main.js
+------------------------------------------------------
+jQuery(function() {
+jQuery.sap.require('sap.m.HBox');
+  var oCB = new sap.ui.commons.CheckBox("chkbx1",{
+	text : 'I want to receive the newsletter',
+	tooltip : 'Newsletter checkbox',
+  checked : true  });
+  oCB.placeAt('content');  
+  var oComboBox1 = new sap.ui.commons.ComboBox("ComboBox1",{change:function(){
+    if(oCB.getVisible()===true){
+    oCB.setVisible(false);
+       }else{                                                                              
+       oCB.setVisible(true);
+  }});
+oComboBox1.setTooltip("Country");
+oComboBox1.setEditable(true);
+oComboBox1.setValue("India");
+oComboBox1.setWidth("200px");
+var oItem = new sap.ui.core.ListItem("Country1");
+oItem.setText("Canada");
+oComboBox1.addItem(oItem);
+oItem = new sap.ui.core.ListItem("Country2");
+oItem.setText("Deutschland");
+oComboBox1.addItem(oItem);
+oItem = new sap.ui.core.ListItem("Country3");
+oItem.setText("Iceland");
+oComboBox1.addItem(oItem);

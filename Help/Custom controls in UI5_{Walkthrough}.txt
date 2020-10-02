@@ -1,0 +1,605 @@
+In this tutorial I will show you how to develop a Custom Control in SAPUI5 (and in OpenUI5, of course). Once implemented, you will also see how you can use the Custom Control. I've tried to find an example which allows me to explain the most important characteristics and features of UI5. That example is a Book Control which represents a book in your favorite web shop. We are not going to develop a whole web shop, we will only develop a single Custom Control (Book) which renders only its properties. I'm not going to focus on CSS or design topics, so our book will be rendered as a simple and ugly list of properties. But I'm sure you will still get the idea. We will code everything into exactly one single HTML file, so we do not modularize much. Data Binding and backend calls are also out of scope. In a future tutorial I will handle Data Binding, backend calls and finally "real" modularization based on the example in this tutorial. SAPUI has some great documentation about Developing SAPUI5 Controls. You should definitely read that!
+
+1. Creating a Custom Data Type
+When creating a Custom Control you have to decide which properties your Control needs to have and you have to define their types. SAPUI5 allows string, int, float, boolean, object and arrays of the mentioned types as predefined data types. You can even use any as the type of properties. These are pretty much data types we know from JavaScript. Besides that SAPUI5 also comes with a UI5-defined data type called sap.ui.core.CSSSize. This data type only allows CSS values like "150px" or "150em". In step 2 you will see how you can use all these different data types for the properties of a Custom Control. But before that you will learn how to create your own custom data type. It represents currency codes, i.e. "USD" for US Dollar or "EUR" for Euro (for simplicity nothing more). The following JavaScript code shows you how to define your own data type based on sap.ui.base.DataType.js (see below). I am not sure if this is an actually public API because I did never see anyone using their own custom data type.
+Hint: Our custom data type is based on sap.ui.base.DataType which is part of sap.ui.base. However, there is absolutely no documentation about sap.ui.base.DataType other than what you find inside the source code of sap.ui.base.DataType.js. sap.ui.base.DataType is used for example inside the library.js of the sap.ui.core for sap.ui.core.CSSSize. Make sure you don't mix this up with sap.ui.model.SimpleType (which we are not using here)!
+
+sap.ui.define("nabisoft/bookstore/datatypes/CurrencyCode",[
+    "sap/ui/base/DataType"
+], function(DataType) {
+    "use strict";
+                    
+    return DataType.createType(
+        "nabisoft.bookstore.datatypes.CurrencyCode", 
+        {
+            isValid : function(sValue) {
+                return sValue === "EUR" || sValue === "USD";
+            },
+        },
+        DataType.getType("string")
+    );
+}, true);
+
+sap.ui.define(...) is something you should familiarize yourself with as soon as possible - you will see this all over in UI5 code/apps. It asynchronously loads other modules defined as dependencies and injects them in the defined order (= order in dependency list) into the formal parameters of the callback function. This is called Dependency Injection in UI5. Old UI5 apps should be migrated to use this so called AMD syntax! In the callback function you can implement your logic. Let's abstract from what exactly you can do there, but make sure to read the API docs for sap.ui.define(...) (must read!). In our case, we only have one dependency to sap.ui.base.DataType. Thanks to using sap.ui.define(...) we are not using immediately invoked function expressions like in the previous version of this tutorial (ask Google to learn more about immediately invoked function expressions (IIFE, pronounced "iffy") as a common practice, although we actually do not need it in this tutorial). Inside the function called by UI5 itself we can see "use strict;". This comes from ECMAScript 5 (December 2009). Every JavaScript developer should know about it - use it as a common best practice!
+Hint: SAPUI5 uses jQuery internally and even ships with jQuery. But there is also a "no-jquery" version available which allows you to choose your own version of jQuery. In the old version of this tutorial we used jQuery for jQuery.sap.declare('nabisoft.bookstore.datatypes.CurrencyCode'); and jQuery.sap.require('sap.ui.base.DataType');. This old approach should be considered as deprecated and therefore if should be abandoned, especially in new UI5 apps. With the AMD syntax by using sap.ui.defined(...) we have a much better solution available. Again - you should think about migrating old UI5 code to the AMD syntax.
+The data type we will create now is called nabisoft.bookstore.datatypes.CurrencyCode. We call sap.ui.base.DataType.createType(sName, oSettings, sBaseType) to create the data type. As already mentioned, this API is not available in the public API documentation for sap.ui.base.DataType, I found it by analyzing the SAPUI5 source code. I still feel confident using that API in this tutorial, so let's get back to the code now. When calling DataType.createType(...) we pass the name of the new data type, an object that has isValid as a callback function and the base type of the data type (in our case this is "string").
+
+In the next step you will see how to use this custom data type.
+
+Hint: There is already a Currency Type available in UI5 out of the box: sap.ui.model.type.Currency. However, it's based on sap.ui.model.SimpleType and not on sap.ui.base.DataType.
+
+2. Creating a Custom Control
+The Custom Control we will implement now represents a simple Book, that's why we call it nabisoft.bookstore.controls.Book. Before we continue please have a quick look at the source code (usually in a separate file):
+
+sap.ui.define("nabisoft/bookstore/controls/Book",[  // remove the first parameter in "real" apps
+    "sap/ui/core/Control",
+    "sap/m/Button",
+    "sap/m/Image",
+    "sap/m/Link",
+    "sap/m/Text"
+], function(Control, Button, Image, Link, Text) {
+    "use strict";
+ 
+    var Book = Control.extend("nabisoft.bookstore.controls.Book", {
+        // the control API:
+        metadata : {
+            properties : {
+                /* Business Object properties */
+                title             : {type : "string"},
+                author            : {type : "string"},
+                description       : {type : "string"},
+                price             : {type : "float"},
+                currencyCode      : {type : "nabisoft.bookstore.datatypes.CurrencyCode", defaultValue : "USD"}, //BUG defaultValue is not validated
+                comments          : {type : "string[]", defaultValue: []},
+                numberOfPages     : {type : "int"},
+                coverPictureUrl   : {type : "string"},  // usueally you would use "sap.ui.core.URI" for type
+                expressDelivery   : {type : "boolean", defaultValue : false},
+                                
+                /* other (configuration) properties */
+                width             : {type : "sap.ui.core.CSSSize", defaultValue : "400px"},
+                height            : {type : "sap.ui.core.CSSSize", defaultValue : "400px"},
+ 
+                // only for demonstration
+                someObject      : {type : "object"},
+                whatever        : {type : "any"}
+            },
+                            
+            aggregations : {
+                _buyButton      : {type : "sap.m.Button", multiple : false, visibility: "hidden"},
+                coverPicture    : {type : "sap.m.Image", multiple : false, visibility: "public"}
+            },
+                            
+            associations: {
+                relatedBooks : {type : "nabisoft.bookstore.controls.Book", multiple : true, singularName: "relatedBook"}
+            },
+                            
+            events : {
+                buy : {enablePreventDefault : true}
+            }
+        },
+ 
+        // be careful with this, better avoid it!
+        // See why at https://www.nabisoft.com/tutorials/sapui5/why-initializing-properties-on-prototypes-can-have-nasty-side-effects-in-sapui5
+        //_oLink : null,
+ 
+        init : function(){
+            var oControl = this, oBuyBtn, oCoverPic;
+                            
+            this._oLink = new Link();
+            //do something with the link
+            //...
+                            
+            //create a button for buying that book
+            oBuyBtn   = new Button({
+                text: "Buy this book",
+                press: function (oEvent) {
+                    oControl.fireBuy({
+                        someData : "some data I want to pass along with the event object"
+                    });
+                }
+            });
+            this.setAggregation("_buyButton", oBuyBtn);
+                            
+            //create and initialize the cover picture, but we don't have a src yet
+            oCoverPic = new Image({
+                decorative: true,
+                width: "150px",
+                height: "200px",
+                tooltip: "Cover of book"
+            });
+            oCoverPic.addStyleClass("nsBookCvrPic");
+            this.setCoverPicture(oCoverPic);
+ 
+        },
+                        
+        onAfterRendering: function (){
+            //called after instance has been rendered (it's in the DOM)
+        },
+                        
+        _somePrivateMethod : function () { /*do someting...*/ },
+                         
+        somePublicMethod : function () { /*do someting...*/ },
+ 
+        renderer : {
+ 
+            render : function(oRm, oControl) {
+ 
+                oRm.write("<div");
+                oRm.writeControlData(oControl);
+ 
+                oRm.addClass("nsBook");
+                oRm.writeClasses();
+                                
+                oRm.addStyle("width", oControl.getWidth());
+                oRm.addStyle("height", oControl.getHeight());
+                oRm.writeStyles();
+ 
+                oRm.write(">");
+                                
+                //content:
+ 
+                oRm.write("<div>");
+                    oRm.renderControl(oControl.getCoverPicture());
+                oRm.write("</div>");
+                                
+                //we don't do any fancy stuff because we are lazy ;-)
+                //oRm.writeEscaped("<div>escape this</div>");
+                oRm.write("<div>");
+                    oRm.write("<div>Title            : "+oControl.getTitle()+"</div>");
+                    oRm.write("<div>Author           : "+oControl.getAuthor()+"</div>");
+                    oRm.write("<div>Description      : "+oControl.getDescription()+"</div>");
+                    oRm.write("<div>Price            : "+oControl.getPrice().toFixed(2)+" "+oControl.getCurrencyCode() +"</div>");
+                    oRm.write("<div>Comments         : <br>"+oControl.getComments().join("<br>")+"</div>");
+                    oRm.write("<div>Pages            : "+oControl.getNumberOfPages()+"</div>");
+                    oRm.write("<div>Express Delivery : "+oControl.getExpressDelivery()+"</div>");    
+                    oRm.write("<div>");
+                        oRm.renderControl(oControl.getAggregation("_buyButton"));
+                    oRm.write("</div>");
+                oRm.write("</div>");
+ 
+                oRm.write("</div>"); // close the nsBook div
+            }
+        }
+    });
+ 
+    //overwrite setter
+    nabisoft.bookstore.controls.Book.prototype.setCoverPictureUrl = function (sVal) {
+        if (sVal) {
+            this.setProperty("coverPictureUrl", sVal, /*suppressInvalidate*/ true);     //do not re-render
+            this.getCoverPicture().setSrc(sVal);
+        }
+    };
+                    
+    nabisoft.bookstore.controls.Book.prototype.exit = function () {
+        /* release resources that are not released by the SAPUI5 framework */
+        if (this._oLink){
+            this._oLink.destroy();
+            delete this._oLink;
+        }
+    };
+ 
+    return Book;
+ 
+});
+
+The first thing we do is calling sap.ui.define(...) with the dependencies to other modules which we will use, i.e. other Controls. Using other Controls inside our custom Control means we are creating a Composite Control. In other words: A composite Control is a Control that uses other Controls internally. In a future tutorial I will show you how to use modularization best practices in UI5, and there I'll also tell you how to handle CSS files that belong to a certain Control.
+To create a Custom Control we have to extend sap.ui.core.Control. Behind the scenes SAPUI5 will manage a lot for us, including the object oriented inheritance. A Control's metadata object is very important as it contains its properties, aggregations, associations and events. For demonstration purposes our Custom Control has all of them.
+
+Hint: In the previous version of this tutorial I used $.sap.includeStyleSheet("path/to/css/file"); to include a CSS file. It's discouraged to use this in new applications. The preferred way is to add your Control to a UI5 (custom) library; maybe you'd like to check out UI5lab.io for custom libraries. When the library itself is loaded UI5 makes sure that the corresponding library css file is loaded as well! Using libraries allows you to fit your Controls into the "theming concept/architecture" of UI5. Have a look at Developing Content for UI5 to learn more about Control Libraries right from the source. However, creating a Control Library for only one Custom Control which you only need in exactly one of your apps is most probably too much overhead. Instead, you simply want to create a Control "locally" inside your app without overhead; and maybe because you don't want to share your Control. Such Controls are called "On-The-Fly Controls" or "Notepad Controls" (hmm, I haven't heard the terms for years...). Typically, the corresponding CSS files for On-The-Fly Controls are loaded by the Component of your Component based app that includes your On-The-Fly Control. See Step 14: Custom CSS and Theme Colors and Step 34: Custom Controls of the official Walkthrough Tutorial for details. This means there is no need to use $.sap.includeStyleSheet("path/to/css/file"); anymore - at least in the majority of cases.
+
+The first thing we do is calling sap.ui.define(...) with the dependencies to other modules which we will use, i.e. other Controls. Using other Controls inside our custom Control means we are creating a Composite Control. In other words: A composite Control is a Control that uses other Controls internally. In a future tutorial I will show you how to use modularization best practices in UI5, and there I'll also tell you how to handle CSS files that belong to a certain Control.
+
+To create a Custom Control we have to extend sap.ui.core.Control. Behind the scenes SAPUI5 will manage a lot for us, including the object oriented inheritance. A Control's metadata object is very important as it contains its properties, aggregations, associations and events. For demonstration purposes our Custom Control has all of them.
+
+Hint: In the previous version of this tutorial I used $.sap.includeStyleSheet("path/to/css/file"); to include a CSS file. It's discouraged to use this in new applications. The preferred way is to add your Control to a UI5 (custom) library; maybe you'd like to check out UI5lab.io for custom libraries. When the library itself is loaded UI5 makes sure that the corresponding library css file is loaded as well! Using libraries allows you to fit your Controls into the "theming concept/architecture" of UI5. Have a look at Developing Content for UI5 to learn more about Control Libraries right from the source. However, creating a Control Library for only one Custom Control which you only need in exactly one of your apps is most probably too much overhead. Instead, you simply want to create a Control "locally" inside your app without overhead; and maybe because you don't want to share your Control. Such Controls are called "On-The-Fly Controls" or "Notepad Controls" (hmm, I haven't heard the terms for years...). Typically, the corresponding CSS files for On-The-Fly Controls are loaded by the Component of your Component based app that includes your On-The-Fly Control. See Step 14: Custom CSS and Theme Colors and Step 34: Custom Controls of the official Walkthrough Tutorial for details. This means there is no need to use $.sap.includeStyleSheet("path/to/css/file"); anymore - at least in the majority of cases.
+
+2.1 Properties
+A property of a Control can have the type string, float, int, boolean, sap.ui.core.CSSSize, object, any or array of each one of them. You can also define a default value for each property. Besides that you can also implement your own custom data type and use it for a property (keep in mind this is not documented!). As you can see in the code box above we have a property called currencyCode of type nabisoft.bookstore.datatypes.CurrencyCode which we created earlier. Its default value is "USD". I have found that SAPUI5 does not validate the default value of custom data types. In other words, although only "EUR" and "USD" are valid values for our custom data type you could use any other string as default value. In my point of view this is a bug. However, when using the setter of a property even for custom data types the values are validated. Properties can have different purposes. They can be real properties of a Business Object, i.e. a Book can have a title, author, description, price and so on. Other properties might only be available for the configuration of the Control's behavior or design, i.e. the width and height properties of our Control are only used for rendering. In case you have many properties it can make sense to separate these two kinds of properties in your code because it can make the code easier to read. For demonstration reasons I have also added two properties of type object and any. I rarely use these types and I have found that using them for properties can be an indicator for a bad design of a Control. However, there may be good reasons why you want to use them for a property depending on your own use case. For such cases I am glad that SAPUI5 is flexible enough. For each property SAPUI5 generates the corresponding getters and setters. You will see how to use the getters and setters later.
+
+2.2 Aggregations
+Each book has a cover picture. To illustrate how aggregations can be used we use an aggregation coverPicture of type sap.m.Image to hold the cover image. The visibility is public which means that this aggregation is for external use, i.e. getter and setter will be generated by SAPUI5. The aggregation _buyButton has visibility: "hidden", which means that we actually don't want it to be used from "outside", so it is kind of private and the getter and setter will not be generated. However, it can still be accessed from outside of our Control by calling getAggregation("_buyButton") on an instance of our Control. To make it clear for everybody I have added the prefix "_", which tells you that _buyButton is meant to be private.
+
+2.3 Associations
+We have one association called relatedBooks. It contains a list of nabisoft.bookstore.controls.Book to suggest other books to potential buyers of a book. With multiple : true we can tell SAPUI5 that the association is an array. With singularName: "relatedBook" we tell SAPUI5 how we want to add a new book or how to remove a book from the list. That means you can call oBook.getRelatedBooks() to receive the array that contains all books and you can call oBook.addRelatedBook(...) to add a new Book or oBook.removeRelatedBook(...) to remove a book. All these public APIs are generated by SAPUI5 automatically.
+
+2.4 Events
+In SAPUI5 Events are specified by the name of the event only. Optionally, you could use allowPreventDefault to tell SAPUI5 that the application can decide if it wants to cancel the event. For each event SAPUI5 generates methods for registering, de-registering and firing events. For the illustration of events we have one event called buy, which means that the methods attachBuy, detachBuy and fireBuy are automatically generated by the SAPUI5 framework.
+
+2.5 What is the difference between aggregations and associations?
+UML experts have been discussing about Association vs Aggregation vs Composition a lot, especially about Aggregation vs Composition. I believe in the SAPUI5 APIs you rarely find the term composition (except for Composite Controls...). That means we only have associations and aggregations - that's very clear. Now what's the difference between associations and aggregations? An association can exist outside of our Control and an aggregation depends of the containing Control. If a Control is destroyed then all its aggregations are destroyed as well; they cannot be used outside of the Control. But associations are not destroyed when the Control is destroyed, so references to an association are still valid even after the containing or more precisely the referencing Control has been destroyed.
+
+2.6 Life Cycle Methods
+One of the most important methods of any Control is the init() method. It is called exactly once for each instance of the Control. In our Control we use the init() method to do things we only need to do once per instance, i.e. instantiating a Button exactly once per instance and setting the _buyButton aggregation.
+
+onAfterRendering() is another method which is called by the SAPUI5 framework after the Control has been rendered. In other words: inside that method your Control is part of the DOM (if it is a rendered Control). This is sometimes used to run some animations or for applying some jQuery plugins. But you need to be careful because your Control might get re-rendered (i.e. when properties change) which could lead to lost states of previously applied jQuery plugins.
+
+The exit() method is called when the SAPUI5 framework destroys the instance of your Control. It is used to release resource that you don't need anymore. Especially resources that are not managed by the SAPUI5 framework should be released here. In our example we destroy _oLink. We do it here because SAPUI5 does not know it and therefore will not destroy it automatically. Aggregations are destroyed automatically. Associations should not be destroyed here because by definition someone outside of our Control has to do it (Associations can even exist although it's containing/referencing Control(s) are already destroyed). Please also note that I used a different notation to define the exit() method compared to the other lifecyle methods: nabisoft.bookstore.controls.Book.prototype.exit. You can decide on your own which way you like it best.
+
+2.7 Additional Methods
+Controls could also contain methods that do not change properties. Or methods that change more than one property based on some internal logic. Let's just call these methods additional methods which we want to differ from typical getters and setters. somePublicMethod is one of these additional methods and it is meant to be for public use. If you need some private utility method you could simply use _somePrivateMethod; the "_" prefix is a naming convention for private methods, but does not hinder anyone calling them.
+
+2.8 Control Managed Properties
+In our Control _oLink is a Control Managed Property (I have no clue how this can be called other than that). Although it is inside our Control the SAPUI5 framework will neither generate getters/setters nor will it destroy it whenever the Control is destroyed. That means we have to manage _oLink on our own. See the code for details. Note that _oLink is set inside init(). There is an important reason for this, but that's the topic of a different tutorial: Why initializing properties on prototypes can have nasty side effects in SAPUI5.
+
+2.9 Overwriting Setters
+As we know SAPUI5 generates getters and setters, i.e. for properties of Controls. Sometimes you want to change them. One reason (but not the only one) is that SAPUI5 typically re-renders a Control if a property has changed. But sometimes you don't want to re-render the Control just because a property has changed in order to save performance - especially relevant for large Controls. Think of a Button's tooltip: do you really want to re-render the Button only because the tooltip has changed? The answer is usually no. In this example you want to set the property, then you get the corresponding DOM element and change its title attribute. That's it, no need for a complete re-rendering of the button instance. In fact, SAPUI5 typically does not re-render Controls like Button, TextField etc. in case their tooltip has changed. I believe that's a good decision. So keep in mind: changing tooltips typically does not trigger re-rendering. So one reason for overwriting the default re-rendering behavior of SAPUI5 is to skip re-rendering in order to improve performance. For demonstration purposes our Control does overwrite the setter of our coverPictureUrl property with nabisoft.bookstore.controls.Book.prototype.setCoverPictureUrl = function (sVal) {...};. Inside that method we still change the property with setProperty(sProp, sVal, bSuppressInvalidate); a method which is inherited by every Control. If you pass true for the third parameter then the property will be changed without triggering a re-rendering.
+
+2.10 Rendering the Control
+To render a Control you simply implement the render() method. It is called by the SAPUI5 framework. The oControl parameter allows you to access the Control and it's methods etc. The parameter oRm is the RenderManager and allows you to render what ever you want. Check the source code to see how to render a Control.
+
+3. Using the Custom Control with plain JavaScript
+To use our Control we simply create a new instance of it and we pass the values for the properties we want to fill. We also listen for buy events. Additionally, you could also offer a callback function in order to react whenever the Control is rendered. Finally, we add the Control to some DOM element because we want to see it. See the code below for further details.
+
+var oBook = new nabisoft.bookstore.controls.Book({
+    height:"auto",
+    title: "My Book via JavaScript",
+    author: "My Author",
+    description: "This is a Book about...",
+    price: 49.90,
+    currencyCode: "EUR",
+    comments: ["Great book!", "A must have!", "I liked chapter 6 the most!"],
+    numberOfPages: 293,
+    coverPictureUrl: "https://lorempixel.com/150/200/",
+    expressDelivery: true,
+    relatedBooks: [],
+    buy : function(oEvent){
+        var oBook = oEvent.getSource();
+        alert("Buy event received: '" + oBook.getTitle() + "' by " + oBook.getAuthor());
+    }
+});
+oBook.addEventDelegate({ 
+    onAfterRendering: function(){
+        //called after the instance has been rendered (it's in the DOM)
+    } 
+});
+oBook.placeAt("contentPlayinJs");
+
+4. Using the Custom Control in XMLViews
+XMLViews are suggested by SAP as the preferred view type in UI5. Custom Controls can be used in any XMLView just like any other Control. First you create your XMLView (make sure you have the namespace defined for your Custom Control):
+
+Hint: The code of the XMLView below is embedded into a <script> tag with the id myXmlView. This id is used later to get the content of the <script> tag (which is our XMLView code) in order to place the XMLView somewhere into the DOM. This approach is only used for demonstration purposes. You will most probably never need this approach in real worlds UI5 apps.
+
+<mvc:View
+    controllerName="nabisoft.my.Controller"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="nabisoft.bookstore.controls">
+ 
+    <!-- use our custom control, implementation see below -->
+    <!-- works w/o namespace prefix because the default is set to "nabisoft.bookstore.controls" -->
+    <Book
+        id="myBook"
+        height="auto"
+        title="My Book in XMLView"
+        author="My Author"
+        description="This is a Book about..."
+        price="11.99"
+        currencyCode="USD"
+        comments="Great book!,A must have!,I liked chapter 6 the most!"
+        numberOfPages="349"
+        coverPictureUrl="https://lorempixel.com/150/200/"
+        expressDelivery="true"
+        buy="onBuy" />
+                
+</mvc:View>
+
+If you have referenced a Controller inside your XMLView (like in our case), then make sure to implement it:
+
+sap.ui.define([
+    "sap/ui/core/mvc/Controller"
+], function (Controller) {
+    "use strict";
+ 
+    return Controller.extend("nabisoft.my.Controller", {
+        onInit : function () {
+            var oBook = this.byId("myBook");
+            oBook.addEventDelegate({ 
+                onAfterRendering: function(){
+                    //called after the instance has been rendered (it's in the DOM)
+                } 
+            });
+        },
+        onBuy : function(oEvent){
+            var oBook = oEvent.getSource();
+            alert("Buy event received: '" + oBook.getTitle() + "' by " + oBook.getAuthor());
+        },
+        onAfterRendering: function(){
+            //called after the view has been rendered (it's in the DOM)
+        }
+    });
+});
+
+Finally, you want to place the XMLView somewhere into the DOM. In real UI5 apps you would not do this by hand. Instead, you would let the UI5 Navigation and Routing features handle all that for you. However, UI5 Navigation and Routing is not the focus of this tutorial, so let's just place the XMLView with some JavaScript into the DOM:
+
+sap.ui.xmlview({
+    viewContent : jQuery("#myXmlView").html()
+}).placeAt("contentXMLView");
+5. Putting it all together (Live Demo)
+And here is the complete code - all in one single file. As already mentioned, in real world apps you would not put everything into one file. UI5 has first class support for modularization. This helps to make your app's code maintainable - an important criteria for enterprise grade frameworks!
+
+
+Complete Code (live demo)
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Creating Custom Controls in SAPUI5 Demo</title>        
+      
+        <script id="sap-ui-bootstrap"
+            src="https://openui5.hana.ondemand.com/1.44.19/resources/sap-ui-core.js"
+            data-sap-ui-theme="sap_belize"
+            data-sap-ui-libs="sap.m"
+            data-sap-ui-compatVersion="edge"
+            data-sap-ui-preload="async"></script>
+ 
+ 
+        <!-- XMLView (usually in a separate file) -->
+        <script id="myXmlView" type="ui5/xmlview">
+            <mvc:View
+                controllerName="nabisoft.my.Controller"
+                xmlns:mvc="sap.ui.core.mvc"
+                xmlns="nabisoft.bookstore.controls">
+ 
+                <!-- use our custom control, implementation see below -->
+                <!-- works w/o namespace prefix because the default is set to "nabisoft.bookstore.controls" -->
+                <Book
+                    id="myBook"
+                    height="auto"
+                    title="My Book in XMLView"
+                    author="My Author"
+                    description="This is a Book about..."
+                    price="11.99"
+                    currencyCode="USD"
+                    comments="Great book!,A must have!,I liked chapter 6 the most!"
+                    numberOfPages="349"
+                    coverPictureUrl="https://lorempixel.com/150/200/"
+                    expressDelivery="true"
+                    buy="onBuy" />
+                
+            </mvc:View>
+        </script>
+ 
+        <script>
+            sap.ui.getCore().attachInit(function () {
+                "use strict";
+ 
+                //### custom currency datatype (usually in a separate file) ###
+                /**
+                 * A string type that represents currency codes that are currently supported
+                 * by our little application. Currently only "USD" and "EUR" is supported
+                 */
+                sap.ui.define("nabisoft/bookstore/datatypes/CurrencyCode",[
+                    "sap/ui/base/DataType"
+                ], function(DataType) {
+                    "use strict";
+                    
+                    return DataType.createType(
+                        "nabisoft.bookstore.datatypes.CurrencyCode", 
+                        {
+                            isValid : function(sValue) {
+                                return sValue === "EUR" || sValue === "USD";
+                            },
+                        },
+                        DataType.getType("string")
+                    );
+                }, true);
+ 
+                //### Custom Control (usually in separate files) ###
+                sap.ui.define("nabisoft/bookstore/controls/Book",[  // remove the first parameter in "real" apps
+                    "sap/ui/core/Control",
+                    "sap/m/Button",
+                    "sap/m/Image",
+                    "sap/m/Link",
+                    "sap/m/Text"
+                ], function(Control, Button, Image, Link, Text) {
+                    "use strict";
+ 
+                    var Book = Control.extend("nabisoft.bookstore.controls.Book", {
+                        // the control API:
+                        metadata : {
+                            properties : {
+                                /* Business Object properties */
+                                title             : {type : "string"},
+                                author            : {type : "string"},
+                                description       : {type : "string"},
+                                price             : {type : "float"},
+                                currencyCode      : {type : "nabisoft.bookstore.datatypes.CurrencyCode", defaultValue : "USD"}, //BUG defaultValue is not validated
+                                comments          : {type : "string[]", defaultValue: []},
+                                numberOfPages     : {type : "int"},
+                                coverPictureUrl   : {type : "string"},  // usueally you would use "sap.ui.core.URI" for type
+                                expressDelivery   : {type : "boolean", defaultValue : false},
+                                
+                                /* other (configuration) properties */
+                                width             : {type : "sap.ui.core.CSSSize", defaultValue : "400px"},
+                                height            : {type : "sap.ui.core.CSSSize", defaultValue : "400px"},
+                                
+                                // only for demonstration
+                                someObject      : {type : "object"},
+                                whatever        : {type : "any"}
+                            },
+                            
+                            aggregations : {
+                                _buyButton      : {type : "sap.m.Button", multiple : false, visibility: "hidden"},
+                                coverPicture    : {type : "sap.m.Image", multiple : false, visibility: "public"}
+                            },
+                            
+                            associations: {
+                                relatedBooks : {type : "nabisoft.bookstore.controls.Book", multiple : true, singularName: "relatedBook"}
+                            },
+                            
+                            events : {
+                                buy : {enablePreventDefault : true}
+                            }
+                        },
+ 
+                        // be careful with this, better avoid it!
+                        // See why at https://www.nabisoft.com/tutorials/sapui5/why-initializing-properties-on-prototypes-can-have-nasty-side-effects-in-sapui5
+                        //_oLink : null,
+ 
+                        init : function(){
+                            var oControl = this, oBuyBtn, oCoverPic;
+                            
+                            this._oLink = new Link();
+                            //do something with the link
+                            //...
+                            
+                            //create a button for buying that book
+                            oBuyBtn   = new Button({
+                                text: "Buy this book",
+                                press: function (oEvent) {
+                                    oControl.fireBuy({
+                                        someData : "some data I want to pass along with the event object"
+                                    });
+                                }
+                            });
+                            this.setAggregation("_buyButton", oBuyBtn);
+                            
+                            //create and initialize the cover picture, but we don't have a src yet
+                            oCoverPic = new Image({
+                                decorative: true,
+                                width: "150px",
+                                height: "200px",
+                                tooltip: "Cover of book"
+                            });
+                            oCoverPic.addStyleClass("nsBookCvrPic");
+                            this.setCoverPicture(oCoverPic);
+ 
+                        },
+                        
+                        onAfterRendering: function (){
+                            //called after instance has been rendered (it's in the DOM)
+                        },
+                        
+                        _somePrivateMethod : function () { /*do someting...*/ },
+                        
+                        somePublicMethod : function () { /*do someting...*/ },
+ 
+                        renderer : {
+ 
+                            render : function(oRm, oControl) {
+ 
+                                oRm.write("<div");
+                                oRm.writeControlData(oControl);
+ 
+                                oRm.addClass("nsBook");
+                                oRm.writeClasses();
+                                
+                                oRm.addStyle("width", oControl.getWidth());
+                                oRm.addStyle("height", oControl.getHeight());
+                                oRm.writeStyles();
+ 
+                                oRm.write(">");
+                                
+                                //content:
+ 
+                                oRm.write("<div>");
+                                    oRm.renderControl(oControl.getCoverPicture());
+                                oRm.write("</div>");
+                                
+                                //we don't do any fancy stuff because we are lazy ;-)
+                                //oRm.writeEscaped("<div>escape this</div>");
+                                oRm.write("<div>");
+                                    oRm.write("<div>Title            : "+oControl.getTitle()+"</div>");
+                                    oRm.write("<div>Author           : "+oControl.getAuthor()+"</div>");
+                                    oRm.write("<div>Description      : "+oControl.getDescription()+"</div>");
+                                    oRm.write("<div>Price            : "+oControl.getPrice().toFixed(2)+" "+oControl.getCurrencyCode() +"</div>");
+                                    oRm.write("<div>Comments         : <br>"+oControl.getComments().join("<br>")+"</div>");
+                                    oRm.write("<div>Pages            : "+oControl.getNumberOfPages()+"</div>");
+                                    oRm.write("<div>Express Delivery : "+oControl.getExpressDelivery()+"</div>");    
+                                    oRm.write("<div>");
+                                        oRm.renderControl(oControl.getAggregation("_buyButton"));
+                                    oRm.write("</div>");
+                                oRm.write("</div>");
+ 
+                                oRm.write("</div>"); // close the nsBook div
+                            }
+                        }
+                    });
+ 
+                    //overwrite setter
+                    nabisoft.bookstore.controls.Book.prototype.setCoverPictureUrl = function (sVal) {
+                        if (sVal) {
+                            this.setProperty("coverPictureUrl", sVal, /*suppressInvalidate*/ true);     //do not re-render
+                            this.getCoverPicture().setSrc(sVal);
+                        }
+                    };
+                    
+                    nabisoft.bookstore.controls.Book.prototype.exit = function () {
+                        /* release resources that are not released by the SAPUI5 framework */
+                        if (this._oLink){
+                            this._oLink.destroy();
+                            delete this._oLink;
+                        }
+                    };
+ 
+                    return Book;
+ 
+                });
+ 
+                //### Controller (usually in a separate file) ###
+                sap.ui.define([
+                    "sap/ui/core/mvc/Controller"
+                ], function (Controller) {
+                    "use strict";
+ 
+                    return Controller.extend("nabisoft.my.Controller", {
+                        onInit : function () {
+                            var oBook = this.byId("myBook");
+                            oBook.addEventDelegate({ 
+                            onAfterRendering: function(){
+                                //called after the instance has been rendered (it's in the DOM)
+                            } 
+                        });
+                        },
+                        onBuy : function(oEvent){
+                            var oBook = oEvent.getSource();
+                            alert("Buy event received: '" + oBook.getTitle() + "' by " + oBook.getAuthor());
+                        },
+                        onAfterRendering: function(){
+                            //called after the view has been rendered (it's in the DOM)
+                        }
+                    });
+                });
+ 
+                //### place the XMLView somewhere into DOM (usually in a separate file) ###
+                sap.ui.xmlview({
+                    viewContent : jQuery("#myXmlView").html()
+                }).placeAt("contentXMLView");
+ 
+                //### or we create an instance via JavaScript and place it into the DOM (XMLView is preferred in real apps)
+                // in a perfect world we would use dependency injection, but this is just an imperfect tutorial :-)
+                var oBook = new nabisoft.bookstore.controls.Book({
+                    height:"auto",
+                    title: "My Book via JavaScript",
+                    author: "My Author",
+                    description: "This is a Book about...",
+                    price: 49.90,
+                    currencyCode: "EUR",
+                    comments: ["Great book!", "A must have!", "I liked chapter 6 the most!"],
+                    numberOfPages: 293,
+                    coverPictureUrl: "https://lorempixel.com/150/200/",
+                    expressDelivery: true,
+                    relatedBooks: [],
+                    buy : function(oEvent){
+                        var oBook = oEvent.getSource();
+                        alert("Buy event received: '" + oBook.getTitle() + "' by " + oBook.getAuthor());
+                    }
+                });
+                oBook.addEventDelegate({ 
+                    onAfterRendering: function(){
+                        //called after the instance has been rendered (it's in the DOM)
+                    } 
+                });
+                oBook.placeAt("contentPlayinJs");
+            });
+        </script>
+        
+    </head>
+    
+    <body class="sapUiBody" role="application">
+        <div id="contentXMLView" style="padding:10px"></div>
+        <hr style="margin:20px;">
+        <div id="contentPlayinJs"style="padding:10px"></div>
+    </body>
+    
+</html>
