@@ -1,0 +1,71 @@
+<mvc:View
+	xmlns="sap.ui.table"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:m="sap.m"
+	xmlns:core="sap.ui.core"
+  controllerName="demo.controller.Table"
+>
+	<m:Page
+		showHeader="false"
+		enableScrolling="true"
+		class="sapUiResponsiveContentPadding"
+	>
+		<m:content>
+			<Table id="myTable"
+				class="sapUiSizeCondensed"
+				rows="{/}"
+				selectionMode="MultiToggle"
+				visibleRowCount="{= ${/}.length}"
+				selectionBehavior="Row"
+			>
+        <extension>
+          <m:OverflowToolbar class="sapMTBHeader-CTX">
+            <m:Title text="Products"/>
+            <m:ToolbarSpacer />
+            <m:Button
+              icon="sap-icon://add"
+              press=".onAddPress"
+              type="Transparent"
+            />
+          </m:OverflowToolbar>
+			  </extension>
+				<columns>
+					<Column>
+						<m:Text text="Foo" />
+						<template>
+							<m:ComboBox width="100%"
+                selectedKey="{foo/selectedKey}"
+                items="{
+                  path: 'foo/items',
+                  templateShareable: false
+                }"
+						  >
+                <core:Item
+                  key="{key}"
+                  text="{text}"
+                />
+						  </m:ComboBox>
+						</template>
+					</Column>
+					<Column>
+						<m:Text text="Bar" />
+						<template>
+							<m:ComboBox width="100%"
+                selectedKey="{bar/selectedKey}"
+                items="{
+                  path: 'bar/items',
+                  templateShareable: false
+                }"
+              >
+                <core:Item
+                  key="{key}"
+                  text="{text}"
+                />
+							</m:ComboBox>
+						</template>
+					</Column>
+				</columns>
+			</Table>
+		</m:content>
+	</m:Page>
+</mvc:View>

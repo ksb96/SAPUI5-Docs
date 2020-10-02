@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html style="height: 100%;">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Demo</title>
+  <script id="sap-ui-bootstrap"
+    src="https://ui5.sap.com/resources/sap-ui-core.js"
+    data-sap-ui-theme="sap_fiori_3"
+    data-sap-ui-libs="sap.ui.core, sap.m"
+    data-sap-ui-async="true"
+    data-sap-ui-modules="demo/model/type/NumericBoolean"
+    data-sap-ui-compatVersion="edge"
+    data-sap-ui-resourceroots='{"demo": "./"}'
+  ></script>
+  <script>
+    sap.ui.getCore().attachInit(() => sap.ui.require([
+      "sap/ui/core/mvc/XMLView",
+      "sap/ui/model/json/JSONModel",
+    ], async (XMLView, JSONModel) => XMLView.create({
+      definition: `<mvc:View xmlns:mvc="sap.ui.core.mvc"
+        xmlns:core="sap.ui.core"
+        core:require="{
+          NumericBoolean: 'demo/model/type/NumericBoolean'
+        }">
+        <VBox xmlns="sap.m" class="sapUiTinyMargin">
+          <ObjectAttribute title="Model data" text="{/1or0}" />
+          <Switch state="{
+            path: '/1or0',
+            type: 'NumericBoolean'
+          }" type="AcceptReject" />
+          <CheckBox selected="{
+            path: '/1or0',
+            type: 'NumericBoolean'
+          }" />
+        </VBox>
+      </mvc:View>`,
+      models: new JSONModel({ "1or0": "1" }),
+    }).then(view => view.placeAt("content"))));
+  </script>
+</head>
+<body id="content" class="sapUiBody">
+</body>
+</html>
