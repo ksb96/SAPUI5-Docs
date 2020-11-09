@@ -1,0 +1,25 @@
+<mvc:View controllerName="com.sap.Mockui.controller.View1" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m">
+	<Shell id="shell">
+		<App id="app">
+			<pages>
+				<Page id="page" title="" showHeader="false" class="w3-backGround" enableScrolling="false">
+					<content>
+						<VBox class="w3-container w3-padding-10" justifyContent="Center" alignItems="Center" alignContent="Center">
+							<Text class="sapUiSmallMarginBottom"/>
+							<Image id="image" src="img/download.png" width="100%" decorative="false"/>
+							<VBox fitContainer="true" justifyContent="Center" alignItems="Center" alignContent="Center" class="sapUiLargeMarginTop">
+								<items>
+									<Input id="input" width="12.5rem" placeholder="Username" class="input_icon"/>
+									<Input id="input1" width="100%" placeholder="Password" class="input_icon1" type="Password"/>
+									<Button id="btn" class="myButtonStyle" width="12.5rem" text="LOGIN" type="Transparent"/>
+									<!--<Text class="text_1" text="Register"/>-->
+									<!--<Text class="text_2" text="Forget Password"/>-->
+								</items>
+							</VBox>
+						</VBox>
+					</content>
+				</Page>
+			</pages>
+		</App>
+	</Shell>
+</mvc:View>
