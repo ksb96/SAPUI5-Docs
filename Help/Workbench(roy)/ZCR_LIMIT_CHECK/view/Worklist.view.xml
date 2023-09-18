@@ -1,0 +1,61 @@
+<mvc:View
+	controllerName="roitech.customer.controller.Worklist"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:semantic="sap.m.semantic"
+	xmlns:core="sap.ui.core">
+
+	<semantic:FullscreenPage
+	
+		id="page"
+        
+		title="{i18n>worklistViewTitle}">
+		<semantic:content>
+		
+				<!--VBox>
+				<Label text="Customer Name" width="100%" required="true"/>
+			
+		<ActionSelect id="customerId" class="sapUiSmallMarginBottom"
+								items="{path: '/customerSet'}" width="100%" change="onCustomerSelect">
+								<items>
+									<core:Item key="{kunnr}" text="{kunnr}-{NAME1}" />
+								</items>
+							</ActionSelect>
+			</VBox-->
+			<VBox class="sapUiSmallMargin">
+			<VBox class="sapUiSmallMargin">
+					<Label text="{i18n>Customer}" width="100%" required="true"/>
+					<ComboBox id="customerId"
+						items="{ path: 'customerSetJson>/results', sorter: { path: 'kunnr' }, length: 1000 }" width="100%" change="onCustomerSelect">
+						<core:ListItem key="{customerSetJson>kunnr}" text="{customerSetJson>kunnr}-{customerSetJson>NAME1}" additionalText="{kunnr}"/>
+					</ComboBox>
+				</VBox>
+			
+				<VBox id="allbox" visible="false" class="sapUiSmallMargin">
+					<Label text="{i18n>CreditLimitAvl}" width="100%"/>
+					<Text id="limitvalue" text="{crLimitCheckSetJson>/Klimk} {crLimitCheckSetJson>/Cashc}"/>
+					<VBox class="sapUiSmallMargin"></VBox>
+					<Label text="{i18n>CreditLimitUse}" width="100%"/>
+					<Text id="usedvalue" text="{crLimitCheckSetJson>/Skfor} {crLimitCheckSetJson>/Cashc}"/>
+					<VBox class="sapUiSmallMargin"></VBox>
+					<Label text="{i18n>OrderValue}" width="100%" required="true"/>
+					<Input id="ordervalue" liveChange="onPriceChange"/>
+					<VBox class="sapUiSmallMargin"></VBox>
+					<Label text="{i18n>Status}" width="100%"/>
+					<Switch type="AcceptReject" id="mainswitch" state="false">
+						<layoutData>
+							<FlexItemData growFactor="1"/>
+						</layoutData>
+					</Switch>
+				</VBox>
+				</VBox>
+		</semantic:content>
+
+		<!--semantic:sendEmailAction>
+			<semantic:SendEmailAction id="shareEmail" press="onShareEmailPress"/>
+		</semantic:sendEmailAction-->
+
+
+	</semantic:FullscreenPage>
+
+</mvc:View>

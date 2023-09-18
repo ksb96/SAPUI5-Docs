@@ -1,0 +1,18 @@
+{
+	"emp": [{
+		"empid": 11,
+		"firstName": "ray",
+		"lastName": "sinha",
+		"designation": "web consultant"
+	}, {
+		"empid": 12,
+		"firstName": "ashish",
+		"lastName": "roy",
+		"designation": "SDE-1"
+	}, {
+		"empid": 13,
+		"firstName": "ritesh",
+		"lastName": "saha",
+		"designation": "fullstack-developer"
+	}]
+}

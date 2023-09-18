@@ -1,0 +1,10 @@
+<mvc:View xmlns:core="sap.ui.core" xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="com.product.ZProductList.controller.View2"
+	xmlns:html="http://www.w3.org/1999/xhtml">
+	<Page id="View2Page" title="{Name}" showNavButton="true" navButtonPress="onNavBack" class="sapUiResponsiveContentPadding">
+		<content>
+			<Panel id="employeePanel" width="auto" class="sapUiNoContentPadding">
+				<content></content>
+			</Panel>
+		</content>
+	</Page>
+</mvc:View>

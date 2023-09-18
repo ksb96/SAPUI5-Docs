@@ -1,0 +1,29 @@
+<core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core" xmlns:f="sap.ui.layout.form">
+	<Dialog title="New Product Details">
+		<VBox class="sapUiSmallMargin">
+			<f:SimpleForm editable="false" layout="ResponsiveGridLayout" labelSpanL="3" labelSpanM="3" emptySpanL="4" emptySpanM="4" columnsL="1"
+				columnsM="1">
+				<f:content>
+					<Label text="ID"/>
+					<Input id="idinputid"/>
+					<Label text="{i18n>formFirstName}"/>
+					<Input id="idinputname"/>
+					<Label text="{i18n>formLastName}"/>
+					<Input id="idinputdesc"/>
+					<Label text="{i18n>formAddress}"/>
+					<DateTimePicker id="DTP3" displayFormat="short" change="handleChange" class="sapUiSmallMarginBottom"/>
+					<Label text="{i18n>formCity}"/>
+					<Input id="idinputrating"/>
+					<Label text="{i18n>formPostalCode}"/>
+					<Input id="idinputprice"/>
+				</f:content>
+			</f:SimpleForm>
+		</VBox>
+		<beginButton>
+			<Button text="Save" press="onNewRecordSave" type="Accept"/>
+		</beginButton>
+		<endButton>
+			<Button text="Close" press="onCloseF4NewRecord" type="Reject"/>
+		</endButton>
+	</Dialog>
+</core:FragmentDefinition>

@@ -1,0 +1,30 @@
+<mvc:View controllerName="demo.loginForm.controller.View1" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m" xmlns:tnt="sap.tnt">
+	<Shell id="shell">
+		<App id="app">
+			<pages>
+				<Page id="page" title="Page - 1">
+					<content>
+						<tnt:ToolHeader>
+							<Button icon="sap-icon://menu2" type="Transparent" />
+							<ToolbarSpacer/>
+							<Text text="Login Page" />
+							<ToolbarSpacer/>
+							<Button text="Welcome, User" type="Transparent" />
+						</tnt:ToolHeader>
+ <VBox fitContainer="true" justifyContent="Center" alignItems="Center" alignContent="Center">
+ 	<items>
+ 		<Label text="Use Your Credentials" />
+ 		<Input placeholder="Username" />
+ 		<Input placeholder="password" type="Password" />
+ 		<Button width="11rem" text="Login" type="Emphasized" />
+ 	</items>
+ 	
+ </VBox>  
+   
+ 
+  </content>
+				</Page>
+			</pages>
+		</App>
+	</Shell>
+</mvc:View>

@@ -1,0 +1,12 @@
+<mvc:View controllerName="com.product.ZProductList.controller.View1" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m">
+	<Page id="employeeListPage" title="{i18n>EmployeeList}" class="sapUiResponsiveContentPadding">
+		<content>
+			<Link text="Create New Record" press="onLinkPress"/>
+			<List id="productList" headerText="{i18n>ListOfAllEmployees}" items="{/results}">
+				<items>
+					<StandardListItem title="{Name}" iconDensityAware="false" iconInset="false" type="Navigation" press="onRowPress"/>
+				</items>
+			</List>
+		</content>
+	</Page>
+</mvc:View>

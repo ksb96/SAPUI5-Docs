@@ -1,0 +1,10 @@
+<mvc:View controllerName="com.product.ZProductList.controller.View1" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m">
+	<Page id="employeeListPage" title="{i18n>EmployeeList}" class="sapUiResponsiveContentPadding">
+		<content>
+		 		<Button type="Accept"
+						text="Accept"
+						press="onPress">
+				</Button>
+		</content>
+	</Page>
+</mvc:View>

@@ -1,0 +1,38 @@
+<mvc:View controllerName="employee.EmployeeTable.controller.emp" xmlns:mvc="sap.ui.core.mvc" displayBlock="true" xmlns="sap.m">
+	<Shell id="shell">
+		<App id="app">
+			<pages>
+				<Page id="page" title="{i18n>title}">
+					<content>
+						<Table id="TAB1" headerText="{i18n>tab_hdr_text}" items="{employee>/emp}">
+							<columns>
+								<Column>
+									<Text text="{i18n>empid}"/>
+								</Column>
+								<Column>
+									<Text text="{i18n>firstName}"/>
+								</Column>
+								<Column>
+									<Text text="{i18n>lastName}"/>
+								</Column>
+								<Column>
+									<Text text="{i18n>designation}"/>
+								</Column>
+							</columns>
+							<items>
+								<ColumnListItem>
+									<cells>
+										<Text text="{employee>empid}"/>
+										<Text text="{employee>firstName}"/>
+										<Text text="{employee>lastName}"/>
+										<Text text="{employee>designation}"/>
+									</cells>
+								</ColumnListItem>
+							</items>
+						</Table>
+					</content>
+				</Page>
+			</pages>
+		</App>
+	</Shell>
+</mvc:View>

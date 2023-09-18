@@ -1,0 +1,8 @@
+{ "application" : "hcm.mgr.approve.leaverequests",
+  "version" : "1.5.0",
+  "buildNumber" : "27",
+  "buildId" : "2014-11-28_12-43-40",
+  "branch" : "${env.GIT_BRANCH}",
+  "revision" : "${env.GIT_COMMIT}",
+  "GitURL" : "${env.GIT_URL}"
+}
