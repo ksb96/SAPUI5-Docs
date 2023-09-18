@@ -1,17 +1,18 @@
 # SAPUI5
-A repo totally devoted to SAPUI5 related Documentation, Tutorial and Projects. 
+A repository related to SAPUI5-framework, including documentation, tutorials, and projects. 
 
 # Level
-Newbies - to - Mid{level}
+Newbies - to - Mid-level
 
 # Structure 
-##### Help {{{root}}}
+##### Help - root folder
 *    Adding rows dynamically
 *    Dialog Box
 *    Filter - By Column
 *    Numeric Boolean
 *    Sorting
-*    Add,delete,save in ui5 application.doc
+*    Workbench(roy) -- Code related examples
+*    Add, delete, and save in ui5 application.doc
 *    Bind Buttons on each row.txt
 *    Capturing camera photos in a UI5 application without containers.txt
 *    Consume JSON model.doc
